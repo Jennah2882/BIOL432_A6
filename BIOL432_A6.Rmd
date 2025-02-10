@@ -1,0 +1,66 @@
+---
+title: "BIOL432_A6"
+author: "Jennah Levac"
+date: "2025-02-10"
+output: html_document
+---
+
+```{r}
+library(doParallel)
+library(parallel)
+library(foreach)
+```
+Laptop with 8 Cores
+```{r}
+detectCores()
+```
+```{r}
+StartTime <- Sys.time()
+
+for (i in 1:4000) {
+  random_numbers <- rnorm(100000, mean = 10, sd = 3)
+  mean_random_numbers <- mean(random_numbers)}
+
+EndTime <- Sys.time()
+
+TotalTime <- EndTime - StartTime
+
+print(TotalTime)
+```
+Therefore, initial run time was estimated be ~25.7sec
+```{r}
+E_V<- 1
+NCores<-detectCores()
+```
+
+```{r}
+Estimate<- TotalTime/(E_V * (NCores-1))
+print(Estimate)
+```
+```{r}
+Cores <- parallel::makeCluster(detectCores() - 1)  
+```
+```{r}
+doParallel::registerDoParallel(Cores)
+```
+```{r}
+Task1 <- function(n) {
+  random_numbers2 <- rnorm(n, mean = 10, sd = 3)
+  return(mean(random_numbers2))}
+```
+```{r}
+StartTime2 <- Sys.time()
+Results<- foreach(i = 1:4000, .combine = rbind) %dopar% {
+  Task1(100000)}
+
+EndTime2 <- Sys.time()
+
+TotalTime2 <- EndTime2 - StartTime2
+```
+```{r}
+print(TotalTime2)
+```
+```{r}
+parallel::stopCluster(Cores)
+```
+Due to internal processes, the actual parallel loop time is higher (~7.6sec) than our theoretical time (~3.6), which is calculated "under perfect conditions". However, there is still significant time improvement in the parallel loop versus serial loop (~25.7sec), since the parallel loop allows tasks to be divided and completed at the same time (i.e. parallel to one another) and therefore returning results quicker.
